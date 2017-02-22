@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Mvc;
 using WebApp.ViewModels;
 using WebApp.Services;
 using Microsoft.Extensions.Configuration;
+using WebApp.Models;
 
 // For more information on enabling MVC for empty projects, visit http://go.microsoft.com/fwlink/?LinkID=397860
 
@@ -15,17 +16,20 @@ namespace WebApp.Controllers
     {
         private IMailService _mailService;
         private IConfigurationRoot _config;
+        private IEFRepository _repository;
 
-        public HomeController(IMailService mailService, IConfigurationRoot config)
+        public HomeController(IMailService mailService, IConfigurationRoot config, IEFRepository repository)
         {
             _mailService = mailService;
             _config = config;
+            _repository = repository;
         }
 
         // GET: /<controller>/
         public IActionResult Index()
         {
-            return View();
+            var data = _repository.GetAllContacts();
+            return View(data);
         }
 
 

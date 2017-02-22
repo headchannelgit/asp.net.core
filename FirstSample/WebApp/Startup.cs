@@ -10,6 +10,7 @@ using Microsoft.Extensions.Logging;
 using Microsoft.AspNetCore.Routing;
 using WebApp.Services;
 using Microsoft.Extensions.Configuration;
+using WebApp.Models;
 
 namespace WebApp
 {
@@ -44,11 +45,15 @@ namespace WebApp
             {
                 /// real mail service
             }
+
+            services.AddDbContext<EFContext>();
+            services.AddTransient<EFSeedData>();
+            services.AddScoped<IEFRepository, EFRepository>();
             services.AddMvc();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
-        public void Configure(IApplicationBuilder app, IHostingEnvironment env, ILoggerFactory loggerFactory)
+        public void Configure(IApplicationBuilder app, IHostingEnvironment env, ILoggerFactory loggerFactory, EFSeedData seedData)
         {
             loggerFactory.AddConsole();
 
@@ -66,6 +71,8 @@ namespace WebApp
                    defaults: new { controller = "Home", action = "Index" }
                    );
            });
+
+            seedData.EnsureSeedData().Wait();
 
         }
     }

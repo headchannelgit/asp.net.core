@@ -302,3 +302,153 @@ public void ConfigureServices(IServiceCollection services)
     "bootstrap": "~3.3.7"
 ```
 - Dodaj style do _layout.cshtml, nadaj styl dla przycisku submit
+
+#### 11. Entity framework Core
+- Tworzymy model
+```csharp
+namespace WebApp.Models
+{
+    public class Contact
+    {
+        public int Id { get; set; }
+        public string Name { get; set; }
+        public string Email { get; set; }
+        public string Message { get; set; }
+    }
+}
+```
+- Tworzymy DBContext
+```c#
+namespace WebApp.Models
+{
+    public class EFContext : DbContext
+    {
+        private IConfigurationRoot _config;
+
+        public EFContext(IConfigurationRoot config, DbContextOptions options): base(options)
+        {
+            _config = config;
+        }
+
+        protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
+        {
+            base.OnConfiguring(optionsBuilder);
+
+            optionsBuilder.UseSqlServer(_config["ConnectionStrings:DefaultConnection"]);
+        }
+
+        public DbSet<Contact> Contacts { get; set; }
+    }
+}
+```
+- Konfigurujemy DI
+```c#
+        public void ConfigureServices(IServiceCollection services)
+        {
+            ...
+            services.AddDbContext<EFContext>();
+            ...
+        }
+```
+- Wykorzystujemy w kontrolerze
+```csharp
+        public HomeController(IMailService mailService, IConfigurationRoot config, EFContext context)
+        {
+            ...
+            _context = context;
+            ...
+        }
+
+        public IActionResult Index()
+        {
+            var data = _context.Contacts.ToList();
+            return View(data);
+        }
+```
+- Dodajemy dependency i tooling
+```json
+    "Microsoft.EntityFrameworkCore.Tools": {
+      "version": "1.0.0-preview2-final",
+      "type": "build"
+    }
+    ...
+     "Microsoft.EntityFrameworkCore.Tools": {
+      "version": "1.0.0-preview2-final"
+    }
+```
+- Cmd
+```bat
+dotnet ef migrations add InitialDatabase
+```
+następnie
+```bat
+dotnet ef database update
+```
+Pokaż że działa
+- Seeding the Database
+
+```csharp
+namespace WebApp.Models
+{
+    public class EFSeedData
+    {
+        private EFContext _context;
+
+        public EFSeedData(EFContext context)
+        {
+            _context = context;
+        }
+
+        public async Task EnsureSeedData()
+        {
+            if(!_context.Contacts.Any())
+            {
+                var contact_1 = new Contact()
+                {
+                    Email = "sdfsd@sdfsd.pl",
+                    Message = "sdfsdfs",
+                    Name = "sdfds"
+                };
+                _context.Contacts.Add(contact_1);
+
+                await _context.SaveChangesAsync();
+            }
+        }
+    }
+}
+```
+dodaj IoC
+```csharp
+services.AddTransient<EFSeedData>();
+...
+public void Configure(IApplicationBuilder app, IHostingEnvironment env, ILoggerFactory loggerFactory, EFSeedData seedData)
+...
+seedData.EnsureSeedData().Wait();
+```
+uruchom
+- Repository pattern
+```csharp
+namespace WebApp.Models
+{
+    public class EFRepository: IEFRepository
+    {
+        private EFContext _context;
+
+        public EFRepository(EFContext context)
+        {
+            _context = context;
+        }
+
+        public IEnumerable<Contact> GetAllContacts()
+        {
+            return _context.Contacts.ToList();
+        }
+    }
+}
+```
+utwórz takze interfejs, skonfiguruj zależnosc jako scoped, i popraw kontroler
+Popraw model w widoku dla Home/Index
+```html
+@model IEnumerable<WebApp.Models.Contact>
+```
+
