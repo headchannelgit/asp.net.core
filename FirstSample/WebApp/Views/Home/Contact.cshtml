@@ -1,0 +1,19 @@
+﻿@model WebApp.ViewModels.ContactVM
+@{
+
+}
+
+<form method="post">
+    <div asp-validation-summary="ModelOnly"></div>
+
+    <label asp-for="Name"></label>
+    <input asp-for="Name" />
+    <span asp-validation-for="Name"></span>
+    <label asp-for="Email"></label>
+    <input type="email" asp-for="Email" />
+    <label asp-for="Message"></label>
+    <textarea cols="40" rows="4" asp-for="Message"></textarea>
+    <div>
+        <input type="submit" value="Send Message" class="btn" />
+    </div>
+</form>
