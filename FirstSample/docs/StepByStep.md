@@ -451,4 +451,127 @@ Popraw model w widoku dla Home/Index
 ```html
 @model IEnumerable<WebApp.Models.Contact>
 ```
+#### 12. Logging
+- Skonfiguruj DI
+```csharp
+    services.AddLogging();
+```
+- Skonfiguruj ILoggerFactory
+```csharp
+    if (env.IsEnvironment("Development"))
+    {
+        app.UseDeveloperExceptionPage();
+        loggerFactory.AddDebug(LogLevel.Information);
+    }
+    else
+    {
+        loggerFactory.AddDebug(LogLevel.Error);
+    }
+```
+- Obsłuż logowanie w kontrolerze
+Konstruktor
+```csharp
+ILogger<HomeController> logger
+```
+Index
+```csharp
+  try
+    {
+        var data = _repository.GetAllContacts();
+        return View(data);
 
+    }
+    catch (Exception ex)
+    {
+        _logger.LogError($"Error: {ex.Message}");
+        return Redirect("/error");
+    }
+```
+#### API
+- Kontroler
+```csharp
+namespace WebApp.Controllers.Api
+{
+    public class ContactController: Controller
+    {
+        private IEFRepository _repository;
+
+        public ContactController(IEFRepository repository)
+        {
+            _repository = repository;
+        }
+
+        [HttpGet("api/contacts")]
+        public IActionResult Get()
+        {
+            return Ok(_repository.GetAllContacts());
+        }
+    }
+}
+```
+- CamelCase
+```csharp
+services.AddMvc()
+    .AddJsonOptions(config =>
+                config.SerializerSettings.ContractResolver = new CamelCasePropertyNamesContractResolver());
+```
+- Post
+```csharp
+        [HttpPost("")]
+        public IActionResult Post([FromBody]ContactVM model)
+        {
+            if (ModelState.IsValid)
+            {
+                return Created($"api/contacts/{model.Name}", model);
+            }
+            return BadRequest("Bad data");
+        }
+```
+Dodaj Route do kontrolera
+```csharp
+    [Route("api/contacts")]
+    public class ContactsController: Controller
+```
+Zamien (chcemy pokazac ze mozemy zwrocic z serwera błędy walidacyjne)
+```csharp
+ return BadRequest("Bad data");
+ ```
+ na
+ ```csharp
+ return BadRequest(ModelState);
+ ```
+ - Automapper
+   - project.json
+   ```json
+   "AutoMapper": "5.2.0"
+   ```
+   - ContactsController
+   ```csharp
+    var contact = Mapper.Map<Contact>(model);
+
+    return Created($"api/contacts/{model.Name}", Mapper.Map<ContactVM>(contact));
+    ```
+    - Skonfiguruj automappera
+    ```csharp
+    Mapper.Initialize(config =>
+    {
+        config.CreateMap<ContactVM, Contact>().ReverseMap();
+    });
+    ```
+    - Popraw Get
+    ```csharp
+        [HttpGet("")]
+        public IActionResult Get()
+        {
+            try
+            {
+                var results = _repository.GetAllContacts();
+                return Ok(Mapper.Map<IEnumerable<ContactVM>>(results));
+            }
+            catch (Exception ex)
+            {
+                return BadRequest("Error");
+            }
+        }
+      ```
+#### AngularJS

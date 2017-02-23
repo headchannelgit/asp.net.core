@@ -22,7 +22,9 @@
     "Microsoft.EntityFrameworkCore.Tools": {
       "version": "1.0.0-preview2-final",
       "type": "build"
-    }
+    },
+    "Microsoft.Extensions.Logging.Debug": "1.0.0",
+    "AutoMapper": "5.2.0"
   },
 
   "tools": {

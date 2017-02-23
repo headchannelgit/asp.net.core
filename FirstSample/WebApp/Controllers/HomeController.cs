@@ -7,6 +7,7 @@ using WebApp.ViewModels;
 using WebApp.Services;
 using Microsoft.Extensions.Configuration;
 using WebApp.Models;
+using Microsoft.Extensions.Logging;
 
 // For more information on enabling MVC for empty projects, visit http://go.microsoft.com/fwlink/?LinkID=397860
 
@@ -17,19 +18,30 @@ namespace WebApp.Controllers
         private IMailService _mailService;
         private IConfigurationRoot _config;
         private IEFRepository _repository;
+        private ILogger<HomeController> _logger;
 
-        public HomeController(IMailService mailService, IConfigurationRoot config, IEFRepository repository)
+        public HomeController(IMailService mailService, IConfigurationRoot config, IEFRepository repository, ILogger<HomeController> logger)
         {
             _mailService = mailService;
             _config = config;
             _repository = repository;
+            _logger = logger;
         }
 
         // GET: /<controller>/
         public IActionResult Index()
         {
-            var data = _repository.GetAllContacts();
-            return View(data);
+            try
+            {
+                var data = _repository.GetAllContacts();
+                return View(data);
+
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError($"Error: {ex.Message}");
+                return Redirect("/error");
+            }
         }
 
 

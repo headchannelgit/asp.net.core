@@ -11,6 +11,9 @@ using Microsoft.AspNetCore.Routing;
 using WebApp.Services;
 using Microsoft.Extensions.Configuration;
 using WebApp.Models;
+using Newtonsoft.Json.Serialization;
+using AutoMapper;
+using WebApp.ViewModels;
 
 namespace WebApp
 {
@@ -49,7 +52,11 @@ namespace WebApp
             services.AddDbContext<EFContext>();
             services.AddTransient<EFSeedData>();
             services.AddScoped<IEFRepository, EFRepository>();
-            services.AddMvc();
+
+            services.AddLogging();
+            services.AddMvc()
+                .AddJsonOptions(config =>
+                config.SerializerSettings.ContractResolver = new CamelCasePropertyNamesContractResolver());
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -57,9 +64,19 @@ namespace WebApp
         {
             loggerFactory.AddConsole();
 
+            Mapper.Initialize(config =>
+           {
+               config.CreateMap<ContactVM, Contact>().ReverseMap();
+           });
+
             if (env.IsEnvironment("Development"))
             {
                 app.UseDeveloperExceptionPage();
+                loggerFactory.AddDebug(LogLevel.Information);
+            }
+            else
+            {
+                loggerFactory.AddDebug(LogLevel.Error);
             }
 
             app.UseStaticFiles();
