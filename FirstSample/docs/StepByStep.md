@@ -4,9 +4,9 @@
 > https://docs.microsoft.com/en-us/aspnet/core/fundamentals/servers/kestrel
 > https://docs.microsoft.com/en-us/aspnet/core/fundamentals/servers/kestrel
 
-# ASP.NET Pierwsze kroki
-##### 1. Utwórz nowy pusty projekt asp.net core
-* Pokaż **Program.cs** [ASP.NET Core Fundamentals](https://docs.microsoft.com/en-us/aspnet/core/fundamentals/)
+## 1. ASP.NET Pierwsze kroki
+##### 1.1. Struktura projektu
+- **Program.cs** [ASP.NET Core Fundamentals](https://docs.microsoft.com/en-us/aspnet/core/fundamentals/)
   - _Kestrel_
      > Kestrel is a cross-platform web server for ASP.NET Core based on **libuv**, a cross-platform asynchronous I/O library.
      > 
@@ -16,7 +16,7 @@
   - _Web root_
      > The web root of your app is the directory in your project for public, static resources like css, js, and image files. The static files middleware will only serve files from the web root directory (and sub-directories) by default. The web root path defaults to /wwwroot, but you can specify a different location using the WebHostBuilder.
   - UseIISIntegration - *web.config*
-* Pokaż **Startup.cs** [ASP.NET Core Application Startup](https://docs.microsoft.com/en-us/aspnet/core/fundamentals/startup)
+- **Startup.cs** [ASP.NET Core Application Startup](https://docs.microsoft.com/en-us/aspnet/core/fundamentals/startup)
   - _The Configure method_
      > The Configure method is used to specify how the ASP.NET application will respond to HTTP requests. The request pipeline is configured by adding [middleware](https://docs.microsoft.com/en-us/aspnet/core/fundamentals/middleware) 
   - _The ConfigureServices method_
@@ -42,8 +42,10 @@
 	}
 	```
 
+##### 1.2. **Middleware** 
+  > https://docs.microsoft.com/en-us/aspnet/core/fundamentals/middleware
 
-##### 2. Utwórz plik Index.html
+##### 1.3. Static Files, Default Files
 
 * Utwórz plik index.html, wrzuć do wwwroot.
 * Uruchom projekt w przeglądarce i pokaż że plik się nie wyświetli
@@ -59,33 +61,33 @@
     "Microsoft.AspNetCore.StaticFiles": "1.0.0"
     ```
 * Dodaj obsługę domyślnych plików
-  * Zła kolejność (pokaż i napraw)
+
+  Zła kolejność (pokaż i napraw)
     ```c#
     app.UseStaticFiles();
     app.UseDefaultFiles();
     ```
-# MVC 6
+## 2. MVC 6
  
-##### 1. Utwórz kontroler
-- Dodaj referencje do MVC bezpośrednio przez Project.Json
+##### 2.1. Obsługa MVC
+- Utwórz kontroler Home + Widok
+- Dodaj referencje do MVC bezpośrednio przez **Project.Json**
     ```json
        "Microsoft.AspNetCore.Mvc": "1.1.1"
     ```
 
-##### 2. Dodaj Widok
-##### 3. Dodaj middleware dla MVC
-- Włącz MVC
-   ```c#
+- Dodaj **middleware** dla MVC
+   ```csharp
     app.UseMvc();
    ```
-- Pokaż że wciąż MVC nie działa
-- Dodaj DI dla MVC
-    ```c#
+  > Pokaż że wciąż MVC nie działa
+- Zarejestruj DI dla MVC
+    ```csharp
     services.AddMvc();
     ```
-- Pokaż że wciąż MVC nie działa
+  > Pokaż że wciąż MVC nie działa
 - Dodaj domyślną route
-    ```c#
+    ```csharp
             app.UseMvc(config =>
            {
                config.MapRoute(
@@ -96,22 +98,27 @@
            });
     ```
 
-##### 4. Dodaj plik layoutu /Views/Shared/_Layout.cshtml
+- Dodaj plik layout /Views/Shared/_Layout.cshtml
 - Utwórz _ViewStart.cshtml aby przypisać na wszystkich widoków domyślny layout
-##### 5. Pokaż obsługę wyjątków
-- Dodaj wyjatek w akcji Index, pokaż że pomimo błędu nie widzimy detali błędu.
+    ```html
+    @{
+    Layout = "_Layout";
+    }
+    ```
+##### 2.2. Pokaż obsługę wyjątków
+  > Dodaj wyjatek w akcji Index, pokaż że pomimo błędu nie widzimy detali błędu.
 - Dodaj middleware dla Develoepr Exception Page
     ```c#
     app.UseDeveloperExceptionPage();
     ```
-- Pokaż 
+    Można tak:
    ```c#
     if (env.IsDevelopment())
     {
         app.UseDeveloperExceptionPage();
     }
      ```
-     lub
+     lub tak:
 
      ```c#
     if (env.IsEnvironment("Development"))
@@ -119,15 +126,15 @@
         app.UseDeveloperExceptionPage();
     }
     ```
-- Pokaż zmienna ASPNETCORE_ENVIRONMENT w  konfiguracji pliku projektu, zakładka debug
+- Pokaż zmienna ASPNETCORE_ENVIRONMENT
 
-##### 6. Tag Helpers
+##### 2.3. Tag Helpers
    > Tag Helpers dla bootstrap: https://github.com/dpaquette/TagHelperSamples
 - Dodaj i pokaż że jeszcze nie działa
     ```html
     <a asp-controller="Home" asp-action="Index">Home</a>
     ```
-- Dodaj dependencies (project.json)
+- Dodaj dependencies
     ```json
     "Microsoft.AspNetCore.Mvc.TagHelpers": "1.1.1"
     ```
@@ -136,7 +143,8 @@
     @addTagHelper "*, Microsoft.AspNetCore.Mvc.TagHelpers"
     ```
 - Utwórz strone Contact (controller, model, widok), pokaż ze tag helpers działają
-    - widok
+    
+    widok:
     ```html
     <form method="post">
     <label asp-for="Name"></label>
@@ -150,8 +158,8 @@
     </div>
     </form>
     ```
-    - model
-    ```c#
+    model:
+    ```csharp
     public class ContactVM
     {
         public string Name { get; set; }
@@ -166,10 +174,11 @@
       "type": "build"
     },
     ```
-    jako dependencies i tools
+    > Trzeba wpis zduplikować jako dependencies i tools
 
 - Pokaż jak utworzyć własny tag helper
-    - TagHelpers/EmailTagHelper.cs
+    
+    TagHelpers/EmailTagHelper.cs
     ```c#
     namespace TheWorld.TagHelpers
     {
@@ -185,30 +194,80 @@
         }
     }
     ```
-    - _ViewImports.cshtml
+    _ViewImports.cshtml
     ```html
     @addTagHelper "*, WebApp"
     ```
- #### 7. Javascript (jQuery)
+##### 2.4. TagHelpers cd. (Bootstrap)
+
+ - Bootstrap ( **bower.json** )
+    ```json
+    "bootstrap": "~3.3.7"
+    ```
+     _layout.cshtml
+
+    ```html
+    <link href="~/lib/bootstrap/dist/css/bootstrap.css" rel="stylesheet" />
+    ```
+- RowTagHelper.cs
+    ```csharp
+    public class RowTagHelper : TagHelper
+    {
+        public override void Process(TagHelperContext context, TagHelperOutput output)
+        {
+            output.TagName = "div";
+            output.Attributes.SetAttribute("class", "row");
+        }
+    }
+    ```
+- ColumnTagHelper.cs
+    ```csharp
+    public class ColumnTagHelper : TagHelper
+    {
+        public int Size { get; set; }
+
+        public int Offset { get; set; }
+
+        public override void Process(TagHelperContext context, TagHelperOutput output)
+        {
+            output.TagName = "div";
+            var cssClass = $"col-md-{Size} col-md-offset-{Offset}";
+            output.Attributes.SetAttribute("class", cssClass);
+        }
+    }
+    ```
+- FormGroupTagHelper.cs
+    ```csharp
+        public class FormGroupTagHelper : TagHelper
+        {
+            public override void Process(TagHelperContext context, TagHelperOutput output)
+            {
+                output.TagName = "div";
+                output.Attributes.SetAttribute("class", "form-group");
+            }
+        }
+    ```
+
+ #### 3. Javascript (jQuery)
  - Dodaj biblioteki w bower.json
- ```json
-    "jquery": "~3.1.1",
-    "jquery-validation": "~1.16.0",
-    "jquery-validation-unobtrusive": "~3.2.6"
-```
+     ```json
+        "jquery": "~3.1.1",
+        "jquery-validation": "~1.16.0",
+        "jquery-validation-unobtrusive": "~3.2.6"
+    ```
 - Dodaj script w contact.cshtml
-```html
-  <script src="~/lib/jquery-validation/dist/jquery.validate.min.js"></script>
-  <script src="~/lib/jquery-validation-unobtrusive/jquery.validate.unobtrusive.min.js"></script>
-  ...
-  <div asp-validation-summary="ModelOnly"></div>
-  ...
-  <span asp-validation-for="Name"></span>
-```
+    ```html
+      <script src="~/lib/jquery-validation/dist/jquery.validate.min.js"></script>
+      <script src="~/lib/jquery-validation-unobtrusive/jquery.validate.unobtrusive.min.js"></script>
+      ...
+      <div asp-validation-summary="ModelOnly"></div>
+      ...
+      <span asp-validation-for="Name"></span>
+    ```
 - Zmodyfikuj kontroler
-#### 8. IMailService - Wstrzykiwanie zależności
+#### 4. Wstrzykiwanie zależności
 - Dodaj interfejs i klase DebugMailService
-```c#
+    ```csharp
     public interface IMailService
     {
         void SendMail(string to, string from, string subject, string body);
@@ -221,22 +280,22 @@
             Debug.WriteLine($"Sending Mail: To : {to} From: {from}, Subject: {subject}, Body: {body}");
         }
     }
-```
+    ```
 - Wstrzyknij IMailService do kontrolera
-```c#
+    ```c#
     private IMailService _mailService;
 
     public HomeController(IMailService mailService)
     {
         _mailService = mailService;
     }
-```
+    ```
 - Skonfiguruj DI
-```c#
+    ```c#
     services.AddTransient<IMailService, DebugMailService>();
-```
+    ```
 - DI Environment settings
-```c#
+    ```csharp
     private IHostingEnvironment _env;
 
     public Startup(IHostingEnvironment env)
@@ -252,39 +311,55 @@
     {
         /// real mail service
     }
-```
-#### 9. Configuration file
-- Add config.json
-```json
+    ```
+    > Service Lifetimes: Transient, Scoped, Singleton
+    > 
+    > https://docs.microsoft.com/en-us/aspnet/core/fundamentals/dependency-injection
+- HomeController
+    ```csharp
+    [HttpPost]
+    public IActionResult Contact(ContactVM model)
     {
-      "MailSettings": {
-        "ToAddress": "sdfds@sdfds.pl"
-      },
-      "ConnectionStrings": {
-        "DefaultConnection": "Server=(localdb)\\MSSQLLocalDB;Database=_CHANGE_ME;Trusted_Connection=True;MultipleActiveResultSets=true"
-      }
+        if (ModelState.IsValid)
+        {
+            _mailService.SendMail("marek@headchannel.co.uk", model.Email, "sdfdsf", model.Message);
+            return RedirectToAction("Contact");
+        }
+        return View();
     }
-```
+    ```
+#### 5. Configuration file
+- Add config.json
+    ```json
+    {
+        "MailSettings": {
+        "ToAddress": "sdfds@sdfds.pl"
+        },
+        "ConnectionStrings": {
+        "DefaultConnection": "Server=(localdb)\\MSSQLLocalDB;Database=_CHANGE_ME;Trusted_Connection=True;MultipleActiveResultSets=true"
+        }
+    }
+    ```
 - Startup.cs - zmodyfikuj konstruktor
-```c#
-private IConfigurationRoot _config;
-...
-public Startup(IHostingEnvironment env)
-...
-    var builder = new ConfigurationBuilder()
-        .SetBasePath(_env.ContentRootPath)
-        .AddJsonFile("config.json")
-        .AddEnvironmentVariables();
+    ```c#
+    private IConfigurationRoot _config;
+    ...
+    public Startup(IHostingEnvironment env)
+    ...
+        var builder = new ConfigurationBuilder()
+            .SetBasePath(_env.ContentRootPath)
+            .AddJsonFile("config.json")
+            .AddEnvironmentVariables();
 
-    _config = builder.Build();
-}
-public void ConfigureServices(IServiceCollection services)
-{
-    services.AddSingleton(_config);
-...
-```
+        _config = builder.Build();
+    }
+    public void ConfigureServices(IServiceCollection services)
+    {
+        services.AddSingleton(_config);
+    ...
+    ```
 - Dodaj DI do kontrolera, i użyj wartości z configa
-```c#
+    ```c#
     private IConfigurationRoot _config;
 
     public HomeController(IMailService mailService, IConfigurationRoot config)
@@ -292,172 +367,167 @@ public void ConfigureServices(IServiceCollection services)
         _mailService = mailService;
         _config = config;
     }
-...
-    _config["MailSettings:ToAddress"]
-...
-```
-#### 10. Bootstrap
-- Dodaj bootstrap do bower.json
-```json
-    "bootstrap": "~3.3.7"
-```
-- Dodaj style do _layout.cshtml, nadaj styl dla przycisku submit
+    ...
+        _config["MailSettings:ToAddress"]
+    ...
+    ```
 
-#### 11. Entity framework Core
-- Tworzymy model
-```csharp
-namespace WebApp.Models
-{
-    public class Contact
+
+#### 6. Entity framework Core
+- model
+    ```csharp
+    namespace WebApp.Models
     {
-        public int Id { get; set; }
-        public string Name { get; set; }
-        public string Email { get; set; }
-        public string Message { get; set; }
+        public class Contact
+        {
+            public int Id { get; set; }
+            public string Name { get; set; }
+            public string Email { get; set; }
+            public string Message { get; set; }
+        }
     }
-}
-```
+    ```
 - Tworzymy DBContext
-```c#
-namespace WebApp.Models
-{
-    public class EFContext : DbContext
+    ```csharp
+    namespace WebApp.Models
     {
-        private IConfigurationRoot _config;
-
-        public EFContext(IConfigurationRoot config, DbContextOptions options): base(options)
+        public class EFContext : DbContext
         {
-            _config = config;
+            private IConfigurationRoot _config;
+
+            public EFContext(IConfigurationRoot config, DbContextOptions options): base(options)
+            {
+                _config = config;
+            }
+
+            protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
+            {
+                base.OnConfiguring(optionsBuilder);
+
+                optionsBuilder.UseSqlServer(_config["ConnectionStrings:DefaultConnection"]);
+            }
+
+            public DbSet<Contact> Contacts { get; set; }
         }
-
-        protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
-        {
-            base.OnConfiguring(optionsBuilder);
-
-            optionsBuilder.UseSqlServer(_config["ConnectionStrings:DefaultConnection"]);
-        }
-
-        public DbSet<Contact> Contacts { get; set; }
     }
-}
-```
+    ```
 - Konfigurujemy DI
-```c#
-        public void ConfigureServices(IServiceCollection services)
-        {
-            ...
-            services.AddDbContext<EFContext>();
-            ...
-        }
-```
+    ```c#
+    public void ConfigureServices(IServiceCollection services)
+    {
+        ...
+        services.AddDbContext<EFContext>();
+        ...
+    }
+    ```
 - Wykorzystujemy w kontrolerze
-```csharp
-        public HomeController(IMailService mailService, IConfigurationRoot config, EFContext context)
-        {
-            ...
-            _context = context;
-            ...
-        }
+    ```csharp
+    public HomeController(IMailService mailService, IConfigurationRoot config, EFContext context)
+    {
+        ...
+        _context = context;
+        ...
+    }
 
-        public IActionResult Index()
-        {
-            var data = _context.Contacts.ToList();
-            return View(data);
-        }
-```
+    public IActionResult Index()
+    {
+        var data = _context.Contacts.ToList();
+        return View(data);
+    }
+    ```
 - Dodajemy dependency i tooling
-```json
+    ```json
     "Microsoft.EntityFrameworkCore.Tools": {
-      "version": "1.0.0-preview2-final",
-      "type": "build"
+        "version": "1.0.0-preview2-final",
+        "type": "build"
     }
     ...
-     "Microsoft.EntityFrameworkCore.Tools": {
-      "version": "1.0.0-preview2-final"
+        "Microsoft.EntityFrameworkCore.Tools": {
+        "version": "1.0.0-preview2-final"
     }
-```
+    ```
 - Cmd
-```bat
-dotnet ef migrations add InitialDatabase
-```
-następnie
-```bat
-dotnet ef database update
-```
-Pokaż że działa
+    ```bat
+    dotnet ef migrations add InitialDatabase
+    ```
+    następnie
+    ```bat
+    dotnet ef database update
+    ```
+  > Pokaż że działa
 - Seeding the Database
 
-```csharp
-namespace WebApp.Models
-{
-    public class EFSeedData
+    ```csharp
+    namespace WebApp.Models
     {
-        private EFContext _context;
-
-        public EFSeedData(EFContext context)
+        public class EFSeedData
         {
-            _context = context;
-        }
+            private EFContext _context;
 
-        public async Task EnsureSeedData()
-        {
-            if(!_context.Contacts.Any())
+            public EFSeedData(EFContext context)
             {
-                var contact_1 = new Contact()
-                {
-                    Email = "sdfsd@sdfsd.pl",
-                    Message = "sdfsdfs",
-                    Name = "sdfds"
-                };
-                _context.Contacts.Add(contact_1);
+                _context = context;
+            }
 
-                await _context.SaveChangesAsync();
+            public async Task EnsureSeedData()
+            {
+                if(!_context.Contacts.Any())
+                {
+                    var contact_1 = new Contact()
+                    {
+                        Email = "sdfsd@sdfsd.pl",
+                        Message = "sdfsdfs",
+                        Name = "sdfds"
+                    };
+                    _context.Contacts.Add(contact_1);
+
+                    await _context.SaveChangesAsync();
+                }
             }
         }
     }
-}
-```
-dodaj IoC
-```csharp
-services.AddTransient<EFSeedData>();
-...
-public void Configure(IApplicationBuilder app, IHostingEnvironment env, ILoggerFactory loggerFactory, EFSeedData seedData)
-...
-seedData.EnsureSeedData().Wait();
-```
-uruchom
+    ```
+- dodaj DI
+    ```csharp
+    services.AddTransient<EFSeedData>();
+    ...
+    public void Configure(IApplicationBuilder app, IHostingEnvironment env, ILoggerFactory loggerFactory, EFSeedData seedData)
+    ...
+    seedData.EnsureSeedData().Wait();
+    ```
+  > uruchom
 - Repository pattern
-```csharp
-namespace WebApp.Models
-{
-    public class EFRepository: IEFRepository
+    ```csharp
+    namespace WebApp.Models
     {
-        private EFContext _context;
-
-        public EFRepository(EFContext context)
+        public class EFRepository: IEFRepository
         {
-            _context = context;
-        }
+            private EFContext _context;
 
-        public IEnumerable<Contact> GetAllContacts()
-        {
-            return _context.Contacts.ToList();
+            public EFRepository(EFContext context)
+            {
+                _context = context;
+            }
+
+            public IEnumerable<Contact> GetAllContacts()
+            {
+                return _context.Contacts.ToList();
+            }
         }
     }
-}
-```
-utwórz takze interfejs, skonfiguruj zależnosc jako scoped, i popraw kontroler
-Popraw model w widoku dla Home/Index
-```html
-@model IEnumerable<WebApp.Models.Contact>
-```
-#### 12. Logging
+    ```
+  > utwórz takze interfejs, skonfiguruj zależnosc jako scoped, i popraw kontroler
+- Popraw model w widoku dla Home/Index
+    ```html
+    @model IEnumerable<WebApp.Models.Contact>
+    ```
+#### 7. Logging
 - Skonfiguruj DI
-```csharp
+    ```csharp
     services.AddLogging();
-```
+    ```
 - Skonfiguruj ILoggerFactory
-```csharp
+    ```csharp
     if (env.IsEnvironment("Development"))
     {
         app.UseDeveloperExceptionPage();
@@ -467,15 +537,16 @@ Popraw model w widoku dla Home/Index
     {
         loggerFactory.AddDebug(LogLevel.Error);
     }
-```
+    ```
 - Obsłuż logowanie w kontrolerze
-Konstruktor
-```csharp
-ILogger<HomeController> logger
-```
-Index
-```csharp
-  try
+
+    Konstruktor
+    ```csharp
+    ILogger<HomeController> logger
+    ```
+    Index
+    ```csharp
+    try
     {
         var data = _repository.GetAllContacts();
         return View(data);
@@ -486,8 +557,8 @@ Index
         _logger.LogError($"Error: {ex.Message}");
         return Redirect("/error");
     }
-```
-#### API
+    ```
+#### 8. API
 - Kontroler
 ```csharp
 namespace WebApp.Controllers.Api

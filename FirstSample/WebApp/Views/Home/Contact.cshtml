@@ -3,17 +3,27 @@
 
 }
 
-<form method="post">
-    <div asp-validation-summary="ModelOnly"></div>
+<row>
+    <column size="6" offset="3">
+        <form method="post">
+            <div asp-validation-summary="ModelOnly"></div>
+            <form-group>
+                <label asp-for="Name"></label>
+                <input asp-for="Name"  class="form-control"/>
+                <span asp-validation-for="Name"></span>
+            </form-group>
+            <form-group>
+                <label asp-for="Email"></label>
+                <input type="email" asp-for="Email"  class="form-control" />
+            </form-group>
+            <form-group>
+                <label asp-for="Message"></label>
+                <textarea cols="40" rows="4" asp-for="Message" class="form-control"></textarea>
+            </form-group>
+            <form-group>
+                <input type="submit" value="Send Message" class="btn" />
+            </form-group>
+        </form>
+    </column>
+</row>
 
-    <label asp-for="Name"></label>
-    <input asp-for="Name" />
-    <span asp-validation-for="Name"></span>
-    <label asp-for="Email"></label>
-    <input type="email" asp-for="Email" />
-    <label asp-for="Message"></label>
-    <textarea cols="40" rows="4" asp-for="Message"></textarea>
-    <div>
-        <input type="submit" value="Send Message" class="btn" />
-    </div>
-</form>
