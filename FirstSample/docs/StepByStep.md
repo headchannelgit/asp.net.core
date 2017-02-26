@@ -574,4 +574,248 @@ Zamien (chcemy pokazac ze mozemy zwrocic z serwera błędy walidacyjne)
             }
         }
       ```
+- Swagger
+https://docs.microsoft.com/en-us/aspnet/core/tutorials/web-api-help-pages-using-swagger
+
+#### Identity
+> Replacement for ASP.NET Membership
+- Dodaj atrybut [Authorize] dla akcji Home/Contact
+- Zmodifikuj DBContext
+```csharp
+public class EFContext : IdentityDbContext<AppUser>
+```
+- Utwórz AppUser
+```csharp
+    public class AppUser: IdentityUser
+    {
+        public string CompanyName { get; set; }
+    }
+```
+- cmd: Zobacz liste migracji
+```batch
+dotnet ef migrations list
+```
+Dodaj migracje dla identity
+```batch
+dotnet ef migrations add AddingIdentity
+```
+Zaktualizuj baze danych i pokaż w SQL Server Object Explorer nowo utworzone tabele 
+```batch
+dotnet ef database update
+```
+- Zmodyfikuj konstruktor dla EFSeedData
+```csharp
+   public EFSeedData(EFContext context, UserManager<AppUser> userManager)
+        {
+            _context = context;
+            _userManager = userManager;
+        }
+```
+i dodaj nowego seed'a
+```csharp
+    if(await _userManager.FindByEmailAsync("marek@headchannel.co.uk") == null)
+    {
+        var user = new AppUser()
+        {
+            UserName = "Marek",
+            Email = "marek@headchannel.co.uk"
+        };
+
+        await _userManager.CreateAsync(user, "1qazXSW@");
+    }
+```
+- Startup.cs ConfigureService
+```csharp
+    services.AddIdentity<AppUser, IdentityRole>(config =>
+    {
+        config.User.RequireUniqueEmail = true;
+        config.Password.RequiredLength = 8;
+        config.Cookies.ApplicationCookie.LoginPath = "/Auth/Login";
+    })
+    .AddEntityFrameworkStores<EFContext>();
+```
+Metoda Configure, dodaj przez MVC
+```csharp
+    app.UseIdentity();
+```
+- Pokaż ze jak wejdziesz na Home/Contact to chce przekierować
+- utwórz kontroler:
+```csharp
+    public class AuthController : Controller
+    {
+        // GET: /<controller>/
+        public IActionResult Login()
+        {
+            if (User.Identity.IsAuthenticated)
+            {
+                return RedirectToAction("Index", "Home");
+            }
+            return View();
+        }
+    }
+```
+- utwórz widok:
+```html
+@model WebApp.ViewModels.LoginVM
+
+<div class="row">
+    <div class="col-md-6 col-md-offset-3">
+        <h3>Login</h3>
+        <form method="post" asp-action="Login" >
+            <div class="form-group">
+                <label asp-for="Username"></label>
+                <input asp-for="Username" class="form-control" />
+            </div>
+            <div class="form-group">
+                <label asp-for="Password"></label>
+                <input type="password" asp-for="Password" class="form-control" />
+            </div>
+            <div class="form-group">
+                <input type="submit" value="Login" class="btn btn-success" />
+            </div>
+        </form>
+    </div>
+</div>
+```
+- SignInManager (Login/Logout)
+```csharp
+        [HttpPost]
+        public async Task<ActionResult> Login(LoginVM model, string returnUrl)
+        {
+            var signInResult = await _signInManager.PasswordSignInAsync(model.Username, model.Password, true, false);
+            if (signInResult.Succeeded)
+            {
+                if (string.IsNullOrWhiteSpace(returnUrl))
+                {
+                    return RedirectToAction("Index", "Home");
+                }
+                else
+                {
+                    return Redirect(returnUrl);
+                }
+
+            }
+            return View();         
+        }
+
+        public async Task<ActionResult> Logout()
+        {
+            if (User.Identity.IsAuthenticated)
+            {
+                await _signInManager.SignOutAsync();
+            }
+            return RedirectToAction("Index", "Home");
+        }
+```
+- Identity in API
+```csharp
+            services.AddIdentity<AppUser, IdentityRole>(config =>
+            {
+                config.User.RequireUniqueEmail = true;
+                config.Password.RequiredLength = 8;
+                config.Cookies.ApplicationCookie.LoginPath = "/Auth/Login";
+                config.Cookies.ApplicationCookie.Events = new CookieAuthenticationEvents()
+                {
+                    OnRedirectToLogin = async ctx =>
+                    {
+                        if (ctx.Request.Path.StartsWithSegments("/api") && ctx.Response.StatusCode == 200)
+                        {
+                            ctx.Response.StatusCode = 401;
+                        }
+                        else
+                        {
+                            ctx.Response.Redirect(ctx.RedirectUri);
+                        }
+                        await Task.Yield();
+                    }
+                };
+            })
+            .AddEntityFrameworkStores<EFContext>();
+```
+
+
 #### AngularJS
+- Bower
+```json
+ "angular": "1.6.2"
+```
+- layout 
+```html
+<body>
+    <div ng-app="">
+        @RenderBody()
+    </div>
+    <script src="~/lib/angular/angular.js"></script>
+</body>
+```
+#### Minifying JS
+- Na potrzeby tego punktu utwórz jakis plik js (np site.js), dodaj go do _Layout
+```javascript
+var MODULE = (function () {
+    var my = {},
+		privateVariable = 1;
+
+    function privateMethod() {
+        // ...
+    }
+
+    my.moduleProperty = 1;
+    my.moduleMethod = function () {
+        // ...
+    };
+
+    return my;
+}());
+```
+
+- Dodaj package.json (npn configuration file) i zmodyfikuj
+```json
+"devDependencies": {
+    "gulp": "~3.9.1",
+    "gulp-uglify": "~2.0.1"
+  }
+```
+- Dodaj gulpFile.js Gulp Configuration file i go zmodyfikuj
+```javascript
+var gulp = require('gulp');
+var uglify = require("gulp-uglify");
+
+gulp.task('minify', function () {
+    return gulp.src("wwwroot/js/*.js")
+            .pipe(uglify())
+            .pipe(gulp.dest("wwwroot/lib/_app"))
+});
+```
+- uruchom w cmd gulp minify i pokaz ze w wwwroot/lib pojawił się folder _app
+- Prawym przyciskiem na guplfile.js i uruchom task runner explorer, odwież liste tasków, ustaw minify jako after build
+- Dodaj tag helper "Environment" do _layout
+```html
+    <environment names="Development">
+        <script src="~/js/site.js"></script>
+    </environment>
+    <environment names="Production">
+        <script src="~/lib/_app/site.js"></script>
+    </environment>
+```
+- Zmien ASPNETCORE_ENVIRONMENT na Production
+> Możesz mieć tu problem z DI dla DebugMailService
+- Dla angulara trzeba użyć dodatkowo gulp-ng-annotate
+
+Package.json
+```json
+"gulp-ng-annotate": "~2.0.0"
+```
+gulpfile.js
+```javascript
+var gulp = require('gulp');
+var uglify = require("gulp-uglify");
+var ngAnnotate = require("gulp-ng-annotate")
+
+gulp.task('minify', function () {
+    return gulp.src("wwwroot/js/*.js")
+            .pipe(ngAnnotate())
+            .pipe(uglify())
+            .pipe(gulp.dest("wwwroot/lib/_app"))
+});
+```
+

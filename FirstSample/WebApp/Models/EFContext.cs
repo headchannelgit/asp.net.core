@@ -2,12 +2,13 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 
 namespace WebApp.Models
 {
-    public class EFContext : DbContext
+    public class EFContext : IdentityDbContext<AppUser>
     {
         private IConfigurationRoot _config;
 

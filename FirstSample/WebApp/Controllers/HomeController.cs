@@ -8,6 +8,7 @@ using WebApp.Services;
 using Microsoft.Extensions.Configuration;
 using WebApp.Models;
 using Microsoft.Extensions.Logging;
+using Microsoft.AspNetCore.Authorization;
 
 // For more information on enabling MVC for empty projects, visit http://go.microsoft.com/fwlink/?LinkID=397860
 
@@ -45,6 +46,7 @@ namespace WebApp.Controllers
         }
 
 
+        [Authorize]
         [HttpGet]
         public IActionResult Contact()
         {

@@ -7,8 +7,17 @@
     <link href="~/lib/bootstrap/dist/css/bootstrap.css" rel="stylesheet" />
 </head>
 <body>
-    <div>
+
+    <div ng-app="">
         @RenderBody()
     </div>
+    <script src="~/lib/angular/angular.js"></script>
+
+    <environment names="Development">
+        <script src="~/js/site.js"></script>
+    </environment>
+    <environment names="Production">
+        <script src="~/lib/_app/site.js"></script>
+    </environment>
 </body>
 </html>

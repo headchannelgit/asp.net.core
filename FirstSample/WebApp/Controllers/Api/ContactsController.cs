@@ -16,7 +16,7 @@ namespace WebApp.Controllers.Api
         private ILogger _logger;
         private IEFRepository _repository;
 
-        public ContactsController(IEFRepository repository, ILogger logger)
+        public ContactsController(IEFRepository repository, ILogger<ContactsController> logger)
         {
             _repository = repository;
             _logger = logger;

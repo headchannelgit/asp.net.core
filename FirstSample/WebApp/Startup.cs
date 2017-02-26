@@ -14,6 +14,8 @@ using WebApp.Models;
 using Newtonsoft.Json.Serialization;
 using AutoMapper;
 using WebApp.ViewModels;
+using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
+using Microsoft.AspNetCore.Authentication.Cookies;
 
 namespace WebApp
 {
@@ -36,9 +38,10 @@ namespace WebApp
         }
         // This method gets called by the runtime. Use this method to add services to the container.
         // For more information on how to configure your application, visit http://go.microsoft.com/fwlink/?LinkID=398940
-        public void ConfigureServices(IServiceCollection services)
+        public async void ConfigureServices(IServiceCollection services)
         {
             services.AddSingleton(_config);
+            services.AddLogging();
 
             if (_env.IsDevelopment())
             {
@@ -46,12 +49,39 @@ namespace WebApp
             }
             else
             {
-                /// real mail service
+                services.AddTransient<IMailService, DebugMailService>();
             }
+
+            services.AddIdentity<AppUser, IdentityRole>(config =>
+            {
+                config.User.RequireUniqueEmail = true;
+                config.Password.RequiredLength = 8;
+                config.Cookies.ApplicationCookie.LoginPath = "/Auth/Login";
+                config.Cookies.ApplicationCookie.Events = new CookieAuthenticationEvents()
+                {
+                    OnRedirectToLogin = async ctx =>
+                    {
+                        if (ctx.Request.Path.StartsWithSegments("/api") && ctx.Response.StatusCode == 200)
+                        {
+                            ctx.Response.StatusCode = 401;
+                        }
+                        else
+                        {
+                            ctx.Response.Redirect(ctx.RedirectUri);
+                        }
+                        await Task.Yield();
+                    }
+                };
+            })
+            .AddEntityFrameworkStores<EFContext>();
 
             services.AddDbContext<EFContext>();
             services.AddTransient<EFSeedData>();
             services.AddScoped<IEFRepository, EFRepository>();
+            services.AddSwaggerGen(c =>
+            {
+                c.SwaggerDoc("v1", new Swashbuckle.AspNetCore.Swagger.Info { Title = "My API", Version = "v1" });
+            });
 
             services.AddLogging();
             services.AddMvc()
@@ -80,6 +110,7 @@ namespace WebApp
             }
 
             app.UseStaticFiles();
+            app.UseIdentity();
             app.UseMvc(config =>
            {
                config.MapRoute(
@@ -88,6 +119,12 @@ namespace WebApp
                    defaults: new { controller = "Home", action = "Index" }
                    );
            });
+
+            app.UseSwagger();
+            app.UseSwaggerUi(c =>
+            {
+                c.SwaggerEndpoint("/swagger/v1/swagger.json", "My API V1");
+            });
 
             seedData.EnsureSeedData().Wait();
 
